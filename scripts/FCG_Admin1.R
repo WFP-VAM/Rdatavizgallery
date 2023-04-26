@@ -36,15 +36,22 @@ fcscat21_admin1_table_long <- data %>%
   ungroup() %>% select(-n) %>% mutate_if(is.numeric, round, 1) 
 
 
-#stacked bar chart of fcg by Admin1
-fcg_colors = c("Acceptable" = "#27AE60","Borderline" = "#F1C40F","Poor" = "#C0392B")
-fcscat21_barplot <- fcscat21_admin1_table_long  %>%  ggplot(aes(fill=FCSCat21, y=perc, x=ADMIN1Name, label = perc)) +geom_bar(position="fill", stat="identity") +theme_wfp(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y")
-fcscat21_barplot <- fcscat21_barplot +scale_y_continuous(labels = scales::percent) +scale_fill_manual(values=fcg_colors) +  labs(
-  title = "Percentage of Households with Poor/Borderline Food Consumption by Region | April 2023",
-  subtitle = "",
-  x = "",
-  y = "",
-  caption = "Source: WFP VAM Unit \n© United Nations World Food Programme"
-)
-
+fcscat21_barplot <- fcscat21_admin1_table_long %>% 
+  ggplot() +geom_col(aes(x = ADMIN1Name, y = perc,fill = FCSCat21), width = 0.7) +geom_text(aes(x = ADMIN1Name,
+                  y = perc,
+                  color = FCSCat21,
+                  label = perc),
+              position = position_stack(vjust = 0.5),
+              show.legend = FALSE,
+              size = 10/.pt,
+  )+
+  labs(
+    title = "Household Food Consumption Score Classification by Residency Status | 2022",
+    subtitle = "Relative Proportion of Households per FCS Classification by Residency Status",
+    caption = "Source: WFP VAM Unit \n© United Nations World Food Programme"
+  )  +  scale_fill_manual(values=fcg_colors) + theme_wfp(grid = "XY",
+                                                                    axis = FALSE,
+                                                                    axis_title = FALSE)             
+                
+                
 
