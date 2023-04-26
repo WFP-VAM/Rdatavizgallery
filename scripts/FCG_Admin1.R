@@ -46,8 +46,8 @@ fcscat21_barplot <- fcscat21_admin1_table_long %>%
               size = 10/.pt,
   )+
   labs(
-    title = "Household Food Consumption Score Classification by Residency Status | 2022",
-    subtitle = "Relative Proportion of Households per FCS Classification by Residency Status",
+    title = "Household Food Consumption Score Classification by State | 2022",
+    subtitle = "",
     caption = "Source: WFP VAM Unit \n© United Nations World Food Programme"
   )  +  scale_fill_manual(values=fcg_colors) + theme_wfp(grid = "XY",
                                                                     axis = FALSE,
