@@ -1,0 +1,239 @@
+---
+title: "CH march 2021 - Example of preliminary results of Food Security direct evidence"
+author: "WFP and partners"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(sf)
+library(tidyverse)
+library(readxl)
+library(kableExtra)
+library(ggiraph)
+library(haven)
+library(labelled)
+
+#1 - import data and if it is SPSS convert values to labels - need to check later about how to use geocodes
+dataset <- read_sav("C:\\RBD_FS_CH_guide_EN\\example_datasets\\exampledataEnglish_processed.sav")
+
+#2 - convert all variables to the labelled version - figure out how to split
+dataset <- dataset %>% mutate(ADMIN1Code = as.character(ADMIN1Name))
+dataset <- dataset %>% mutate(ADMIN2Code = as.character(ADMIN2Name))
+dataset <- to_factor(dataset)
+
+#Household Hunger Score
+#convert to CH phases
+dataset <- dataset %>% mutate(CH_HHS = case_when(
+  HHS == 0 ~ "Phase1",
+  HHS == 1 ~ "Phase2",
+  HHS %in% c(2,3) ~ "Phase3",
+  HHS == 4 ~ "Phase4",
+  HHS >= 5 ~ "Phase5"))
+#calculate % of households in phases and then final phase
+CH_HHS_table_wide <- dataset %>% group_by(ADMIN1Name, ADMIN1Code, ADMIN2Name, ADMIN2Code) %>%
+  drop_na(CH_HHS) %>%
+  count(CH_HHS, wt = WeightHH) %>%
+  mutate(perc = 100 * n / sum(n)) %>%
+  ungroup() %>% select(-n) %>%
+  pivot_wider(names_from = CH_HHS,
+              values_from = perc,
+              values_fill = list(perc = 0)) %>%
+  mutate_if(is.numeric, round, 1) %>%
+  mutate(phase2345 = `Phase2` + `Phase3` + `Phase4` + `Phase5`,
+         phase345 = `Phase3` + `Phase4` + `Phase5`,
+         phase45 = `Phase4` + `Phase5`,
+         HHS_finalphase = case_when(
+           Phase5 >= 20 ~ 5,
+           Phase4 >= 20 | phase45 >= 20 ~ 4,
+           Phase3 >= 20 | phase345 >= 20 ~ 3,
+           Phase2 >= 20 | phase2345 >= 20 ~ 2,
+           TRUE ~ 1)) %>%
+  select(ADMIN1Name, ADMIN1Code, ADMIN2Name, ADMIN2Code, HHS_Phase1 = Phase1, HHS_Phase2 = Phase2, HHS_Phase3 = Phase3, HHS_Phase4 = Phase4, HHS_Phase5 = Phase5, HHS_finalphase)
+
+
+#rCSI
+#convert to CH phases
+dataset <- dataset %>% mutate(CH_rCSI = case_when(
+  rCSI <= 3 ~ "Phase1",
+  between(rCSI,4,18) ~ "Phase2",
+  rCSI >= 19 ~ "Phase3"))
+#calculate % of households in phases and then final phase
+CH_rCSI_table_wide <- dataset %>%
+  group_by(ADMIN1Name, ADMIN1Code, ADMIN2Name, ADMIN2Code) %>%
+  drop_na(CH_rCSI) %>%
+  count(CH_rCSI, wt = WeightHH) %>%
+  mutate(perc = 100 * n / sum(n)) %>%
+  ungroup() %>% select(-n) %>%
+  pivot_wider(names_from = CH_rCSI,
+              values_from = perc,
+              values_fill = list(perc = 0)) %>%
+  replace(., is.na(.), 0)  %>% mutate_if(is.numeric, round, 1) %>%
+  mutate(rcsi23 = Phase2 + Phase3,
+         rCSI_finalphase =
+           case_when(
+             Phase3 >= 20 ~ 3,
+             Phase2 >= 20 | rcsi23 >= 20 ~ 2,
+             TRUE ~ 1)) %>%
+  select(ADMIN1Name, ADMIN1Code, ADMIN2Name, ADMIN2Code, rCSI_Phase1 = Phase1, rCSI_Phase2 = Phase2, rCSI_Phase3 = Phase3, rCSI_finalphase)
+
+#Food Consumption Groups
+#make table of % in food consumption Groups - make sure to use correct threshold
+CH_FCSCat_table_wide <- dataset %>%
+  drop_na(FCSCat21) %>%
+  group_by(ADMIN1Name, ADMIN1Code, ADMIN2Name, ADMIN2Code) %>%
+  count(FCSCat = FCSCat21,  wt = WeightHH) %>%
+  mutate(perc = 100 * n / sum(n)) %>%
+  ungroup() %>% select(-n) %>%
+  pivot_wider(names_from = FCSCat,
+              values_from = perc,
+              values_fill = list(perc = 0)) %>%
+  replace(., is.na(.), 0)  %>% mutate_if(is.numeric, round, 1) %>%
+#Apply the Cadre Harmonise rules for phasing the Food Consumption Groups
+  mutate(PoorBorderline = Poor + Borderline, FCG_finalphase = case_when(
+  Poor < 5 ~ 1,  #if less than 5% are in the poor food group then phase 1
+  Poor >= 20 ~ 4, #if 20% or more are in the poor food group then phase 4
+  between(Poor,5,10) ~ 2, #if % of people are between 5 and 10%  then phase2
+  between(Poor,10,20) & PoorBorderline < 30 ~ 2, #if % of people in poor food group are between 20 and 20% and the % of people who are in poor and borderline is less than 30 % then phase2
+  between(Poor,10,20) & PoorBorderline >= 30 ~ 3)) %>% #if % of people in poor food group are between 20 and 20% and the % of people who are in poor and borderline is less than 30 % then phase2
+  select(ADMIN1Name, ADMIN1Code, ADMIN2Name, ADMIN2Code, FCG_Poor = Poor, FCG_Borderline = Borderline, FCG_Acceptable = Acceptable, FCG_finalphase) #select only relevant variables and order in proper sequence
+
+
+#Household Dietary Diversity Score
+#convert to CH phases
+dataset <- dataset %>% mutate(CH_HDDS = case_when(
+  HDDS >= 5 ~ "Phase1",
+  HDDS == 4 ~ "Phase2",
+  HDDS == 3 ~ "Phase3",
+  HDDS == 2 ~ "Phase4",
+  HDDS < 2 ~ "Phase5"))
+#calculate % of households in phases and then final phase
+CH_HDDS_table_wide  <- dataset %>%
+  drop_na(CH_HDDS) %>%
+  group_by(ADMIN1Name, ADMIN1Code, ADMIN2Name, ADMIN2Code) %>%
+  count(CH_HDDS, wt = WeightHH) %>%
+    mutate(perc = 100 * n / sum(n)) %>%
+  ungroup() %>% select(-n) %>%
+  pivot_wider(names_from = CH_HDDS,
+              values_from = perc,
+              values_fill = list(perc = 0)) %>%
+    mutate_if(is.numeric, round, 1) %>%
+#Apply the 20% rule (if it is 20% in that phase or the sum of higher phases equals 20%)
+    mutate(
+    phase2345 = `Phase2` + `Phase3` + `Phase4` + `Phase5`, #this variable will be used to see if phase 2 and higher phases equals 20                                 phase345 = `Phase3` + `Phase4` + `Phase5`, #this variable will be used to see if phase 3 and higher phases equal 20% or more
+    phase345 = `Phase3` + `Phase4` + `Phase5`,
+    phase45 = `Phase4` + `Phase5`, #this variable will be used to see if phase 3 and higher phases equal 20% or more
+    HDDS_finalphase = case_when(
+    `Phase5` >= 20 ~ 5, #if 20% or more is in phase 5 then assign phase 5
+    `Phase4` >= 20 | phase45 >= 20 ~ 4, #if 20% or more is in phase 4 or the sum of phase4 and 5 is more than 20% then assign phase 4
+    `Phase3` >= 20 | phase345 >= 20 ~ 3, #if 20% or more is in phase 3 or the sum of phase3, 4 and 5 is more than 20% then assign phase 3
+    `Phase2` >= 20 | phase2345 >= 20 ~ 2, #if 20% or more is in phase 2 or the sum of phase 2, 3, 4 and 5 is more than 20% then assign phase 2
+     TRUE ~ 1)) %>% #otherwise assign phase 1
+  select(ADMIN1Name, ADMIN1Code, ADMIN2Name, ADMIN2Code, HDDS_Phase1 = Phase1, HDDS_Phase2 = Phase2, HDDS_Phase3 = Phase3, HDDS_Phase4 = Phase4, HDDS_Phase5 = Phase5, HDDS_finalphase) #select only relevant variables, rename them with indicator name and order in proper sequence
+
+
+#Livelihood Coping Strategies
+CH_LhCSICat_table_wide <- dataset %>%
+  drop_na(LhCSICat) %>%
+  group_by(ADMIN1Name, ADMIN1Code, ADMIN2Name, ADMIN2Code) %>%
+  count(LhCSICat, wt = WeightHH) %>%
+  mutate(perc = 100 * n / sum(n)) %>%
+  ungroup() %>% select(-n) %>%
+  pivot_wider(names_from = LhCSICat,
+              values_from = perc,
+              values_fill = list(perc = 0)) %>%
+  mutate_if(is.numeric, round, 1) %>%
+#Apply the Cadre Harmonise rules for phasing the Livelihood Coping Strategies
+ mutate(stresscrisisemergency = StressStrategies + CrisisStrategies + EmergencyStrategies,
+    crisisemergency = CrisisStrategies + EmergencyStrategies,
+    LhHCSCat_finalphase = case_when(
+    EmergencyStrategies >= 20 ~ 4,
+    crisisemergency >= 20 & EmergencyStrategies < 20 ~ 3,
+    NoStrategies < 80 & crisisemergency < 20 ~ 2,
+    NoStrategies >= 80 ~ 1)) %>%
+    select(ADMIN1Name, ADMIN1Code, ADMIN2Name, ADMIN2Code, LhHCSCat_NoStrategies = NoStrategies, LhHCSCat_StressStrategies = StressStrategies, LhHCSCat_CrisisStategies = CrisisStrategies, LhHCSCat_EmergencyStrategies = EmergencyStrategies, LhHCSCat_finalphase)
+
+
+
+#compile all the direct evidence and contributing factors and export the matrice intermediare excel sheet
+matrice_intermediaire <- left_join(CH_FCSCat_table_wide, CH_HDDS_table_wide, by = c("ADMIN1Name", "ADMIN1Code", "ADMIN2Name", "ADMIN2Code")) %>%
+  left_join(CH_HHS_table_wide, by = c("ADMIN1Name", "ADMIN1Code", "ADMIN2Name", "ADMIN2Code")) %>%
+  left_join(CH_LhCSICat_table_wide, by = c("ADMIN1Name", "ADMIN1Code", "ADMIN2Name", "ADMIN2Code")) %>%
+  left_join(CH_rCSI_table_wide, by = c("ADMIN1Name", "ADMIN1Code", "ADMIN2Name", "ADMIN2Code"))
+
+
+#Import GIS files for country - and select only relevant areas
+NGA_shp2 <- read_sf("C:\\RBD_FS_CH_guide_EN\\example_datasets\\NGA_shpfile\\nga_admbnda_adm2_osgof_20190417.shp") %>% filter(ADM1_EN %in% c("Borno","Adamawa","Yobe"))
+NGA_shp1 <- read_sf("C:\\RBD_FS_CH_guide_EN\\example_datasets\\NGA_shpfile\\nga_admbnda_adm1_osgof_20190417.shp") %>% filter(ADM1_EN %in% c("Borno","Adamawa","Yobe"))
+#Rename the adm1 & adm2codes in the GIS file
+NGA_shp2 <- NGA_shp2 %>% rename(ADMIN2Code = ADM2_PCODE, ADMIN1Code = ADM1_PCODE)
+
+#do an anti-join to see what doesnt match  
+doesnt_join <- anti_join(matrice_intermediaire, NGA_shp2, by = c("ADMIN2Code"))
+doesnt_join2 <- anti_join(matrice_intermediaire, NGA_shp2, by = c("ADMIN2Code"))
+#after looking at what doesnt joine - do a join
+Matrice_intermediaire_shp <- left_join(NGA_shp2,matrice_intermediaire, by = c("ADMIN2Code"))
+
+#CH color codes
+CH_colors = c("1" = "#c6ffc7", "2" = "#ffe718", "3" = "#e88400", "4" = "#e02d00", "5" = "#5e0803")
+
+
+#maps by indicator
+mapHDDS <- Matrice_intermediaire_shp %>% ggplot() +geom_sf_interactive(aes(fill = as.factor(HDDS_finalphase), tooltip = ADMIN2Name)) +theme_void() +coord_sf(datum=NA) +labs(fill="HDDS phasing")  +scale_fill_manual(values = CH_colors) +ggtitle(label= "phasing of HDDS") +geom_sf(data=NGA_shp1,  lwd=1.5, fill=NA)
+mapHHS <- Matrice_intermediaire_shp %>% ggplot()  +geom_sf_interactive(aes(fill = as.factor(HHS_finalphase), tooltip = ADMIN2Name)) +theme_void() +coord_sf(datum=NA) +labs(fill="HHS phasing") +scale_fill_manual(values = CH_colors) +ggtitle(label= "phasing of HHS") +geom_sf(data=NGA_shp1,  lwd=1.5, fill=NA) 
+mapFCG <- Matrice_intermediaire_shp %>% ggplot()+geom_sf_interactive(aes(fill = as.factor(FCG_finalphase), tooltip = ADMIN2Name)) +theme_void() +coord_sf(datum=NA) +labs(fill="FCG phasing") +scale_fill_manual(values = CH_colors) +ggtitle(label= "phasing of food consumption score groups") +geom_sf(data=NGA_shp1,  lwd=1.5, fill=NA)
+maprCSI <- Matrice_intermediaire_shp  %>%ggplot() +geom_sf_interactive(aes(fill = as.factor(rCSI_finalphase), tooltip = ADMIN2Name)) +theme_void() +coord_sf(datum=NA) +labs(fill="rCSI phasing") +scale_fill_manual(values = CH_colors) +ggtitle(label= "phasing of rCSI") +geom_sf(data=NGA_shp1,  lwd=1.5, fill=NA)
+mapLCS <- Matrice_intermediaire_shp  %>% ggplot() +geom_sf_interactive(aes(fill = as.factor(LhHCSCat_finalphase), tooltip = ADMIN2Name)) +theme_void() +coord_sf(datum=NA) +labs(fill="LCS phasing") +scale_fill_manual(values = CH_colors)  +ggtitle(label= "phasing of livelihood coping strategies") +geom_sf(data=NGA_shp1,  lwd=1.5, fill=NA)
+
+table <- matrice_intermediaire%>% select(ADMIN1Name, ADMIN2Name, FCG_finalphase, HDDS_finalphase, rCSI_finalphase, HHS_finalphase, LhHCSCat_finalphase)
+
+
+table  <- table  %>% mutate(HDDS_finalphase = cell_spec(HDDS_finalphase, "html", color = "black", align = "c",  
+background = factor(HDDS_finalphase, c("1", "2", "3", "4", "5"), 
+c("#c6ffc7","#ffe718","#e88400","#e02d00", "#5e0803"))),
+FCG_finalphase = cell_spec(FCG_finalphase, "html", color = "black", align = "c",  
+background = factor(FCG_finalphase, c("1", "2", "3", "4", "5"), 
+c("#c6ffc7","#ffe718","#e88400","#e02d00", "#5e0803"))),
+HHS_finalphase = cell_spec(HHS_finalphase, "html", color = "black", align = "c",  
+background = factor(HHS_finalphase, c("1", "2", "3", "4", "5"), 
+c("#c6ffc7","#ffe718","#e88400","#e02d00", "#5e0803"))),
+rCSI_finalphase = cell_spec(rCSI_finalphase, "html", color = "black", align = "c",  
+background = factor(rCSI_finalphase, c("1", "2", "3", "4", "5"), 
+c("#c6ffc7","#ffe718","#e88400","#e02d00", "#5e0803"))),
+LhHCSCat_finalphase = cell_spec(LhHCSCat_finalphase, "html", color = "black", align = "c",  
+background = factor(LhHCSCat_finalphase, c("1", "2", "3", "4", "5"), 
+c("#c6ffc7","#ffe718","#e88400","#e02d00", "#5e0803"))))
+
+
+
+```
+
+```{r, echo = F}
+girafe(ggobj = mapFCG)
+```
+
+```{r, echo = F}
+girafe(ggobj = mapHDDS)
+```
+
+```{r, echo = F}
+girafe(ggobj = maprCSI)
+```
+
+```{r, echo = F}
+girafe(ggobj = mapHHS)
+```
+
+
+```{r, echo = F}
+girafe(ggobj = mapLCS)
+```
+
+
+
+
+
+```{r , echo=FALSE}
+kable(table, format = "html", escape = F) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
