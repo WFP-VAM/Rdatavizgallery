@@ -5,8 +5,8 @@ library(haven)
 library(officer)
 
 
-#library(devtools)
-#install_github("WFP-VAM/wfpthemes")
+library(devtools)
+install_github("WFP-VAM/wfpthemes")
 library(wfpthemes)
 
 
@@ -42,8 +42,24 @@ fcg_colors = c("Acceptable" = "#27AE60","Borderline" = "#F1C40F","Poor" = "#C039
 main_white <- "#000000"
 main_black <- "#FFFFFF"
 
+fcscat21_barplot_ugz <- fcscat21_admin1_table_long %>% 
+  ggplot() +geom_col(aes(x = ADMIN1Name, y = perc,fill = FCSCat21), width = 0.7) +geom_text(aes(x = ADMIN1Name,
+                                                                                                y = perc,
+                                                                                                color = FCSCat21,
+                                                                                                label = perc),
+                                                                                            position = position_stack(vjust = 0.5),
+                                                                                            show.legend = FALSE,
+                                                                                            size = 10/.pt,
+  )+ scale_color_manual(values = c(main_white, main_black, main_white)) +
+  labs(
+    title = "Household Food Consumption Score Classification by State | 2022",
+    subtitle = "Relative Proportion of Households per FCS Classification by State",
+    caption = "Source: WFP VAM Unit \n© United Nations World Food Programme"
+  )  +  scale_fill_wfp_b(palette = "pal_stoplight_3pt") + theme_wfp(grid = "XY",
+                                                                    axis = FALSE,
+                                                                    axis_title = FALSE)
 
-fcscat21_barplot <- fcscat21_admin1_table_long %>% 
+fcscat21_barplot_nice <- fcscat21_admin1_table_long %>% 
   ggplot() +geom_col(aes(x = ADMIN1Name, y = perc,fill = FCSCat21), width = 0.7) +geom_text(aes(x = ADMIN1Name,
                   y = perc,
                   color = FCSCat21,
