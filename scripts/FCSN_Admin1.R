@@ -1,3 +1,6 @@
+
+
+
 library(tidyverse)
 library(labelled)
 library(expss)
@@ -51,23 +54,27 @@ data <- data %>%
 
 #create table of FGVitACat, FGProteinCat, FGHIronCat by ADM1
 
-
 #make plot
 rcsi_barplot <- rcsi_admin1_table_long %>% 
-  ggplot() +geom_col(aes(x = ADMIN1Name, y = perc,fill = FCSCat21), width = 0.7) +geom_text(aes(x = ADMIN1Name,
-                                                                                                y = perc,
-                                                                                                color = FCSCat21,
-                                                                                                label = perc),
-                                                                                            position = position_stack(vjust = 0.5),
-                                                                                            show.legend = FALSE,
-                                                                                            size = 10/.pt,
-  )+ scale_color_manual(values = c(main_white, main_black, main_white)) +
+ggplot() +
+  geom_col(aes(x = ADMIN1Name, 
+               y = perc,
+               fill = FCSCat21), 
+               width = 0.7) +
+  geom_text(aes(x = ADMIN1Name,
+                y = perc,
+                color = FCSCat21,
+                label = perc),
+                position = position_stack(vjust = 0.5),
+                show.legend = FALSE,
+                size = 10/.pt,) + 
+  scale_color_manual(values = c(main_white, main_black, main_white)) +
   labs(
     title = "Household Food Consumption Score Classification by State | April 2023",
     subtitle = "Relative Proportion of Households per FCS Classification by State in Fake Country",
     caption = "Source: Emergency Food Security Assessment, data collected April 2023"
-  )  +  scale_fill_wfp_b(palette = "pal_stoplight_3pt") + theme_wfp(grid = "XY",
-                                                                    axis = FALSE,
-                                                                    axis_title = FALSE)
-
-
+  ) + 
+  scale_fill_wfp_b(palette = "pal_stoplight_3pt") + 
+  theme_wfp(grid = "XY",
+            axis = FALSE,
+            axis_title = FALSE)
