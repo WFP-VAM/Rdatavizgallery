@@ -15,7 +15,7 @@ data <- haven::read_sav("data/sampledataenglish.sav")
 
 #calculate FCS & FCG - script copied and pasted from https://github.com/WFP-VAM/RAMResourcesScripts/blob/main/Indicators/Food-consumption-score/FCS_indicator_tidyverse.R
 #calculate FCS
-data <- data %>% mutate(FCS = (2 * FCSStap) +(3 * FCSPulse) +(4*FCSPr) +(4*FCSDairy) +FCSVeg  +FCSFruit +(0.5*FCSFat) +(0.5*FCSSugar))
+data <- data %>% mutate(FCS = (2 * FCSStap) +(3 * FCSPulse) +(4 * FCSPr) +(4 * FCSDairy) + FCSVeg +FCSFruit +(0.5 * FCSFat) +(0.5 * FCSSugar))
 var_label(data$FCS) <- "Food Consumption Score"
 #create FCG groups based on 21/25 or 28/42 thresholds
 #Use this when analyzing a country with low consumption of sugar and oil - thresholds 21-35
@@ -39,20 +39,25 @@ fcscat21_admin1_table_long <- data %>%
 
 #make plot
 fcscat21_barplot <- fcscat21_admin1_table_long %>% 
-  ggplot() +geom_col(aes(x = ADMIN1Name, y = perc,fill = FCSCat21), width = 0.7) +geom_text(aes(x = ADMIN1Name,
-                                                                                                y = perc,
-                                                                                                color = FCSCat21,
-                                                                                                label = perc),
-                                                                                            position = position_stack(vjust = 0.5),
-                                                                                            show.legend = FALSE,
-                                                                                            size = 10/.pt,
-  )+ scale_color_manual(values = c(main_white, main_black, main_white)) +
+  ggplot() +geom_col(aes(x = ADMIN1Name, 
+                         y = perc,
+                         fill = FCSCat21), 
+                         width = 0.7) 
+           +geom_text(aes(x = ADMIN1Name,
+                          y = perc,
+                          color = FCSCat21,
+                          label = perc),
+                      position = position_stack(vjust = 0.5),
+                      show.legend = FALSE,
+                      size = 10/.pt,
+          )+scale_color_manual(values = c(main_white, main_black, main_white)) +
   labs(
     title = "Household Food Consumption Score Classification by State | April 2023",
     subtitle = "Relative Proportion of Households per FCS Classification by State in Fake Country",
     caption = "Source: Emergency Food Security Assessment, data collected April 2023"
-  )  +  scale_fill_wfp_b(palette = "pal_stoplight_3pt") + theme_wfp(grid = "XY",
-                                                                    axis = FALSE,
-                                                                    axis_title = FALSE)
+  )       +scale_fill_wfp_b(palette = "pal_stoplight_3pt") 
+          +theme_wfp(grid = "XY",
+                     axis = FALSE,
+                     axis_title = FALSE)
 
 
