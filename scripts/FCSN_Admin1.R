@@ -12,7 +12,6 @@ library(devtools)
 install_github("WFP-VAM/wfpthemes")
 library(wfpthemes)
 
-
 #load sample data set
 data <- haven::read_sav("data/sampledataenglish.sav")
 
@@ -24,7 +23,6 @@ vars2recode <- c("FCSNPrMeatF","FCSNPrMeatO","FCSNPrFish","FCSNPrEggs","FCSNVegO
 data <- data %>% mutate_at(vars2recode, ~replace(., . == "n/a", "0"))
 
 data <- data %>% mutate_at(vars2recode, as.numeric)
-
 
 #compute aggregates of key micronutrient consumption of vitamin, iron and protein 
 data <- data %>% mutate(FGVitA = FCSDairy +FCSNPrMeatO +FCSNPrEggs +FCSNVegOrg +FCSNVegGre +FCSNFruiOrg)
@@ -42,7 +40,6 @@ data <- data %>% mutate(FGVitACat = case_when(FGVitA == 0 ~ 1, between(FGVitA,1,
                         FGHIronCat = case_when(FGHIron == 0 ~ 1, between(FGHIron,1,6) ~ 2,  FGHIron >= 7 ~ 3)
 )
 
-
 # define variables labels and properties for FGVitACat FGProteinCat FGHIronCat
 data <- data %>%
   mutate(across(c(FGVitACat, FGProteinCat, FGHIronCat), ~labelled(., labels = c(
@@ -50,7 +47,6 @@ data <- data %>%
     "Consumed sometimes" = 2,
     "Consumed at least 7 times" = 3
   ))))
-
 
 #create table of FGVitACat, FGProteinCat, FGHIronCat by ADM1
 
