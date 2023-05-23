@@ -112,6 +112,7 @@ data_long <- tidyr::pivot_longer(data,
 ggplot(data_long, 
        aes(x = Variable, 
            fill = factor(value))) +
+  facet_wrap(~ ADMIN1, ncol = 1) +
   geom_bar(width = 0.5, 
            position = "stack") +
   scale_fill_wfp_b(palette = "pal_stoplight_3pt", 
