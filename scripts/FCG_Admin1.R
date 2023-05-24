@@ -31,22 +31,21 @@ var_label(data$FCSCat21) <- "FCS Categories"
 
 #make table of FCG by admin1 - where should this script go - in with indicator calculation or with the viz?
 fcscat21_admin1_table_long <- data %>% 
-  group_by(ADMIN1Name = to_factor(ADMIN1Name)) %>%
+  group_by(ADMIN1Name_lab = to_factor(ADMIN1Name)) %>%
   count(FCSCat21 = as.character(FCSCat21)) %>%
   mutate(perc = 100 * n / sum(n)) %>%
   ungroup() %>% select(-n) %>% mutate_if(is.numeric, round, 1) 
 
 #add % to y axis
-#sort by value
 #add Figure1 tag at top
 
 #make plot
 fcscat21_barplot <- fcscat21_admin1_table_long %>% 
-  ggplot() +geom_col(aes(x = ADMIN1Name, 
+  ggplot() +geom_col(aes(x = fct_reorder2(ADMIN1Name_lab, perc, FCSCat21, \(x,y) sum(x*(y=="Acceptable"))), 
                          y = perc,
                          fill = FCSCat21), 
-                     width = 0.7) +geom_text(aes(x = ADMIN1Name,
-                                                 y = perc,
+                     width = 0.7) +geom_text(aes(x = ADMIN1Name_lab,
+                                                 y = paste0(as.character(perc), "%"),
                                                  color = FCSCat21,
                                                  label = perc),
                                              position = position_stack(vjust = 0.5),
@@ -59,4 +58,4 @@ fcscat21_barplot <- fcscat21_admin1_table_long %>%
                        tag = "Figure 1"
                      )       +scale_fill_wfp_b(palette = "pal_stoplight_3pt") +theme_wfp(grid = "Y",
                                                                                          axis = FALSE,
-                                                                                         axis_title = FALSE)
+                                                                                         axis_title = FALSE) 
