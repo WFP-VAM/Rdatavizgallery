@@ -43,5 +43,6 @@ rcsi_admin1_table_long <- data %>% mutate(ADMIN1Name_lab = to_factor(ADMIN1Name)
     
   ) + geom_text(aes(x = ADMIN1Name_lab,
                     y = meanrCSI, label = meanrCSI),
-                    vjust = -0.5
+                    vjust = -0.5,
+                    size = 10/.pt,
   ) + theme_wfp(grid = "Y", axis_text = "XY", axis_title = "Y", axis_ticks = "Y")  
