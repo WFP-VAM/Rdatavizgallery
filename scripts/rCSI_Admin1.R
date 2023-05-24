@@ -1,9 +1,6 @@
 library(tidyverse)
 library(labelled)
-library(expss)
 library(haven)
-library(officer)
-
 #wfp themes package will be updated frequently - so its good to reinstall it everytime for now
 library(devtools)
 install_github("WFP-VAM/wfpthemes")
@@ -19,31 +16,32 @@ data <- data %>% mutate(rCSI = rCSILessQlty + (2 * rCSIBorrow) + rCSIMealNb + rC
 var_label(data$rCSI) <- "Reduced coping strategies index (rCSI)"
 
 
-#creates a table of the unweighted mean of rCSI
+#creates a table of the weighted mean of rCSI
 
 
 #unweighted mean rCSI by ADM1
-rcsi_admin1_table_long <- data %>% group_by(ADMIN1Name) %>% 
+rcsi_admin1_table_long <- data %>% mutate(ADMIN1Name_lab = to_factor(ADMIN1Name)) %>% group_by(ADMIN1Name_lab) %>% 
   drop_na(rCSI) %>% 
-  summarise(meanrCSI = mean(rCSI))
+  summarise(meanrCSI = round(mean(rCSI),1))
 
 
 #make plot
-rcsi_barplot <- rcsi_admin1_table_long %>% 
-  ggplot() +geom_col(aes(x = ADMIN1Name, y = perc,fill = FCSCat21), width = 0.7) +geom_text(aes(x = ADMIN1Name,
-                                                                                                y = perc,
-                                                                                                color = FCSCat21,
-                                                                                                label = perc),
-                                                                                            position = position_stack(vjust = 0.5),
-                                                                                            show.legend = FALSE,
-                                                                                            size = 10/.pt,
-  )+ scale_color_manual(values = c(main_white, main_black, main_white)) +
+  rcsi_admin1_barplot <- rcsi_admin1_table_long %>% ggplot() +
+  geom_col(aes(
+    x = reorder(ADMIN1Name_lab, meanrCSI),
+    y = meanrCSI,
+  ),
+  fill = wfp_pal(n = 1, "pal_blue"),
+  width = 0.8
+  ) +
   labs(
-    title = "Household Food Consumption Score Classification by State | April 2023",
-    subtitle = "Relative Proportion of Households per FCS Classification by State in Fake Country",
-    caption = "Source: Emergency Food Security Assessment, data collected April 2023"
-  )  +  scale_fill_wfp_b(palette = "pal_stoplight_3pt") + theme_wfp(grid = "XY",
-                                                                    axis = FALSE,
-                                                                    axis_title = FALSE)
-
-
+    tag = "Figure 2",
+    title = "Mean rCSI by State | April 2023",
+    subtitle = "Mean reduced Coping Strategy Index (rCSI) by State in Fake Country",
+    y = "rCSI",
+    caption = "Source: Emergency Food Security Assessment, data collected April 2023",
+    
+  ) + geom_text(aes(x = ADMIN1Name_lab,
+                    y = meanrCSI, label = meanrCSI),
+                    vjust = -0.5
+  ) + theme_wfp(grid = "Y", axis_text = "XY", axis_title = "Y", axis_ticks = "Y")  
