@@ -5,7 +5,7 @@
 
 #------------------------------------------------------------------------------#
 
-## Last updated:  May 23 2023
+## Last updated:  May 24 2023
 
 ## Load Packages --------------------------------------------------------------#
 
@@ -23,7 +23,7 @@ library(wfpthemes)
 
 # Load Sample Data ------------------------------------------------------------#
 
-data <- read_csv("data/FCSN_Sample_Survey.csv")
+data <- read_sav("data/sampledataenglish.sav")
 
 # Calculate FCSN --------------------------------------------------------------# 
 # Script copied and pasted from 
@@ -53,7 +53,7 @@ var_label(data$FGProtein) <- "Consumption of protein-rich foods"
 ## Iron-Rich Foods ------------------------------------------------------------#
 
 data <- data %>% mutate(FGHIron = FCSNPrMeatF +FCSNPrMeatO +FCSNPrFish)
-var_label(data$FGHIron) <- "Consumption of hem iron-rich foods"
+var_label(data$FGHIron) <- "Consumption of heme iron-rich foods"
 
 ## recode into nutritious groups  ---------------------------------------------#
 
@@ -85,8 +85,10 @@ data <- data %>%
 
 # Create table of FGVitACat, FGProteinCat, FGHIronCat by ADMIN1 ---------------#
 
+data$ADMIN1Name <- haven::as_factor(data$ADMIN1Name)
+
 fcsn_table <- data %>%
-  tbl_summary(by = ADMIN1, 
+  tbl_summary(by = ADMIN1Name, 
               include = c(FGVitACat, FGProteinCat, FGHIronCat),
               type = list(where(is.numeric) ~ "continuous",
                           where(is.factor)  ~ "categorical"),
@@ -97,7 +99,9 @@ fcsn_table <- data %>%
   bold_labels()%>%
   italicize_labels()%>%
   italicize_levels() %>%
-  modify_spanning_header(c("stat_0") ~ "**n%**")
+  modify_spanning_header(c("stat_1","stat_2","stat_3","stat_4","stat_5",
+                           "stat_6","stat_7","stat_8","stat_9","stat_10") 
+                        ~ "**n%**") # adjust based on number of ADMIN1
 fcsn_table
 
 # Create bar graph of VitACat, FGProteinCat, FGHIronCat -----------------------# 
@@ -109,18 +113,20 @@ data_long <- tidyr::pivot_longer(data,
                                  names_to = "Variable")
 
 ## Create the bar graph -------------------------------------------------------# 
+
 ggplot(data_long, 
        aes(x = Variable, 
            fill = factor(value))) +
-  facet_wrap(~ ADMIN1, ncol = 1) +
+#  facet_wrap(~ ADMIN1Name, ncol = 1) +
   geom_bar(width = 0.5, 
            position = "stack") +
-  scale_fill_wfp_b(palette = "pal_stoplight_3pt", 
-                   labels = c("Never consumed", "Consumed sometimes", 
-                              "Consumed at least 7 times")) +
+  scale_fill_manual(values = c("#C00000","#E46C0A","#92D050"), 
+                   labels = c("Never consumed", 
+                              "Consumed sometimes", 
+                              "Consumed at least 7 times")
+                   ) +
   geom_text(aes(label = scales::percent(..count../tapply(..count.., ..x.., sum)
-                                        [..x..]), 
-                y = ..count.., 
+                                        [..x..], accuracy = 0.1), 
                 group = factor(value)), 
             stat = "count", 
             position = position_stack(vjust = 0.5), 
@@ -129,11 +135,12 @@ ggplot(data_long,
   scale_color_manual(values = c(main_white, main_black, main_white)) +
   labs(
     title = "Household Food Consumption Score for Nutrition",
-    subtitle = "Vitamin A, Protein and Iron-Rich Foods by State",
+    subtitle = "Vitamin A, Protein and Iron-Rich Foods by State (n = 3,000)",
     caption = "Source: Emergency Food Security Assessment, data collected May 2023",
-    x = "Categories",
-    y = "Count"
   ) +
+  scale_x_discrete(labels = c("Vitamin A-rich foods", 
+                              "Protein-rich foods", 
+                              "Heme iron-rich foods")) + 
   theme_wfp(grid = "XY",
-            axis = FALSE,
-            axis_title = FALSE)
+            axis = F,
+            axis_title = F)
