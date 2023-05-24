@@ -121,11 +121,12 @@ ggplot(data_long,
   geom_bar(width = 0.5, 
            position = "stack") +
   scale_fill_manual(values = c("#C00000","#E46C0A","#92D050"), 
-                   labels = c("Never consumed", "Consumed sometimes", 
-                              "Consumed at least 7 times")) +
+                   labels = c("Never consumed", 
+                              "Consumed sometimes", 
+                              "Consumed at least 7 times")
+                   ) +
   geom_text(aes(label = scales::percent(..count../tapply(..count.., ..x.., sum)
                                         [..x..], accuracy = 0.1), 
-                y = ..count.., 
                 group = factor(value)), 
             stat = "count", 
             position = position_stack(vjust = 0.5), 
@@ -134,14 +135,12 @@ ggplot(data_long,
   scale_color_manual(values = c(main_white, main_black, main_white)) +
   labs(
     title = "Household Food Consumption Score for Nutrition",
-    subtitle = "Vitamin A, Protein and Iron-Rich Foods by State",
+    subtitle = "Vitamin A, Protein and Iron-Rich Foods by State (n = 3,000)",
     caption = "Source: Emergency Food Security Assessment, data collected May 2023",
-    x = "Categories",
-    y = "Count"
   ) +
   scale_x_discrete(labels = c("Vitamin A-rich foods", 
                               "Protein-rich foods", 
                               "Heme iron-rich foods")) + 
   theme_wfp(grid = "XY",
             axis = F,
-            axis_title = T)
+            axis_title = F)
