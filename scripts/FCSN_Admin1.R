@@ -1,7 +1,7 @@
 #------------------------------------------------------------------------------#
 
 #	                        WFP RAM Standardized Scripts
-#                      Calculating and Visualizing FCSN
+#                      Calculating and Visualising FCSN
 
 #------------------------------------------------------------------------------#
 
@@ -16,6 +16,7 @@ library(expss)
 library(haven)
 library(officer)
 library(gtsummary)
+
 # WFP themes package will be updated frequently - reinstall it everytime for now
 library(devtools)
 install_github("WFP-VAM/wfpthemes")
