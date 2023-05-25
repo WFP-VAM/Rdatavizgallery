@@ -54,7 +54,7 @@ rcsi_admin1_barplot <- rcsi_admin1_table_long %>%
   ) +
   labs(
     title = "Mean rCSI by State | April 2023",
-    subtitle = "Mean reduced Coping Strategy Index (rCSI) by State in Fake Country",
+    subtitle = "Mean reduced Coping Strategy Index (rCSI) by State",
     y = "rCSI",
     caption = "Source: Emergency Food Security Assessment, data collected April 2023",
   ) + 
