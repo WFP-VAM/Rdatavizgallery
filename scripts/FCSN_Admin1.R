@@ -23,7 +23,7 @@ library(wfpthemes)
 
 # Load Sample Data ------------------------------------------------------------#
 
-data <- read_sav("data/sampledataenglish.sav")
+data <- haven::read_sav("data/sampledataenglish.sav")
 
 # Calculate FCSN --------------------------------------------------------------# 
 # Script copied and pasted from 
