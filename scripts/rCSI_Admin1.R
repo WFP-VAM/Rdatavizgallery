@@ -18,8 +18,7 @@ install_github("WFP-VAM/wfpthemes")
 library(wfpthemes)
 
 # Load Sample Data ------------------------------------------------------------#
-data <- haven::read_sav("data/sampledataenglish.sav")
-
+data <- haven::read_sav("Documents/GitHub/Rdatavizgallery/data/sampledataenglish.sav")
 
 # Calculate rCSI --------------------------------------------------------------# 
 #Script copied and pasted from 
@@ -42,15 +41,13 @@ rcsi_admin1_table_long <- data %>%
   summarise(meanrCSI = round(mean(rCSI),1))
 
 # Create bar graph of rCSI ----------------------------------------------------# 
-
-rcsi_admin1_barplot <- rcsi_admin1_table_long %>% 
-  ggplot() +
+ggplot(rcsi_admin1_table_long) +
   geom_col(aes(
     x = reorder(ADMIN1Name_lab, meanrCSI),
     y = meanrCSI,
   ),
   fill = wfp_pal(n = 1, "pal_blue"),
-  width = 0.8
+  width = 0.5
   ) +
   labs(
     title = "Mean rCSI by State | April 2023",
@@ -67,4 +64,4 @@ rcsi_admin1_barplot <- rcsi_admin1_table_long %>%
   theme_wfp(grid = "Y", 
                 axis_text = "XY", 
                 axis_title = "Y", 
-                axis_ticks = "Y")  
+                axis_ticks = "Y") 

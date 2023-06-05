@@ -24,7 +24,7 @@ library(wfpthemes)
 
 # Load Sample Data ------------------------------------------------------------#
 
-data <- haven::read_sav("data/sampledataenglish.sav")
+data <- haven::read_sav("Documents/GitHub/Rdatavizgallery/data/sampledataenglish.sav")
 
 # Calculate FCS & FCG ---------------------------------------------------------# 
 # script copied and pasted from 
@@ -69,16 +69,19 @@ var_label(data$FCSCat28) <- "FCS Categories: 28/42 thresholds"
 ## adjust data format ---------------------------------------------------------#
 fcscat21_admin1_table_long <- data %>% 
   group_by(ADMIN1Name_lab = to_factor(ADMIN1Name)) %>%
-  count(FCSCat21 = as.character(FCSCat21)) %>%
+  count(FCSCat21 = as.factor(FCSCat21)) %>%
   mutate(perc = 100 * n / sum(n)) %>%
   ungroup() %>% select(-n) %>% mutate_if(is.numeric, round, 1) 
 
 ## Create the bar graph -------------------------------------------------------# 
+class(fcscat21_admin1_table_long$ADMIN1Name_lab)
+class(fcscat21_admin1_table_long$perc)
+class(fcscat21_admin1_table_long$FCSCat21)
 
 fcscat21_barplot <- fcscat21_admin1_table_long %>% 
   ggplot() +
   geom_col(aes(x = fct_reorder2(ADMIN1Name_lab, 
-                                perc, 
+                                as.numeric(perc),  # Convert perc to numeric
                                 FCSCat21, 
                                 \(x,y) sum(x*(y=="Acceptable"))), 
                y = perc,
@@ -91,14 +94,16 @@ fcscat21_barplot <- fcscat21_admin1_table_long %>%
             position = position_stack(vjust = 0.5),
             show.legend = FALSE,
             size = 10/.pt,
-            ) +
+  ) +
   scale_color_manual(values = c(main_white, main_black, main_white)) +
   labs(title = "Household Food Consumption Score Classification by State | April 2023",
        subtitle = "Relative Proportion of Households per FCS Classification by State in Fake Country",
        caption = "Source: Emergency Food Security Assessment, data collected April 2023",
        tag = "Figure 1"
-       ) +
+  ) +
   scale_fill_wfp_b(palette = "pal_stoplight_3pt") +
   theme_wfp(grid = "Y",
             axis = FALSE,
             axis_title = FALSE)
+
+fcscat21_barplot

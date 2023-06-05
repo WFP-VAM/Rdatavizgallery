@@ -24,7 +24,7 @@ library(wfpthemes)
 
 # Load Sample Data ------------------------------------------------------------#
 
-data <- haven::read_sav("data/sampledataenglish.sav")
+data <- haven::read_sav("Documents/GitHub/Rdatavizgallery/data/sampledataenglish.sav")
 
 # Calculate FCSN --------------------------------------------------------------# 
 # Script copied and pasted from 
@@ -109,9 +109,9 @@ fcsn_table
 
 ## adjust data format ---------------------------------------------------------#
 
-data_long <- tidyr::pivot_longer(data, 
-                                 cols = c(FGVitACat, FGProteinCat, FGHIronCat), 
-                                 names_to = "Variable")
+data_long <- pivot_longer(data, 
+                          cols = c(FGVitACat, FGProteinCat, FGHIronCat), 
+                          names_to = "Variable")
 
 ## Create the bar graph -------------------------------------------------------# 
 
@@ -135,7 +135,7 @@ ggplot(data_long,
             size = 3.5) +
   scale_color_manual(values = c(main_white, main_black, main_white)) +
   labs(
-    title = "Household Food Consumption Score for Nutrition",
+    title = "Household Food Consumption Score Nutritional Analysis",
     subtitle = "Vitamin A, Protein and Iron-Rich Foods by State (n = 3,000)",
     caption = "Source: Emergency Food Security Assessment, data collected May 2023",
   ) +
@@ -144,4 +144,35 @@ ggplot(data_long,
                               "Heme iron-rich foods")) + 
   theme_wfp(grid = "XY",
             axis = F,
+            axis_title = F)
+
+
+## Create the bar graph for single indicator ----------------------------------# 
+
+ggplot(data_long[data_long$Variable == "FGVitACat", ],  # replace with FGProteinCat FGHIronCat
+       aes(x = Variable, 
+           fill = factor(value))) +
+  geom_bar(width = 0.2, 
+           position = "stack") +
+  scale_fill_manual(values = c("#C00000","#E46C0A","#92D050"), 
+                    labels = c("Never consumed", 
+                               "Consumed sometimes", 
+                               "Consumed at least 7 times")) +
+  geom_text(aes(label = scales::percent(..count../tapply(..count.., ..x.., sum)
+                                        [..x..], accuracy = 0.1), 
+                group = factor(value)), 
+            stat = "count", 
+            position = position_stack(vjust = 0.5), 
+            color = "white", 
+            size = 3.5
+            ) +
+  scale_color_manual(values = c(main_white, main_black, main_white)) +
+  labs(
+    title = "HHousehold Food Consumption Score Nutritional Analysis", 
+    subtitle = "Vitamin A-rich Foods by State (n = 3,000)",   # replace variable labels
+    caption = "Source: Emergency Food Security Assessment, data collected May 2023",
+  ) +
+  scale_x_discrete(labels = c("Vitamin A-rich foods")) + 
+  theme_wfp(grid = "XY", 
+            axis = F, 
             axis_title = F)
