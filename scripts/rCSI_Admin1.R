@@ -52,7 +52,7 @@ rcsi_admin_barplot <- rcsi_admin1_table_long %>% ggplot() +
   width = 0.8
   ) +
   labs(
-    title = "Consumption Based Reduced Coping Strategy Index (rCSI) by State | April 2023",
+    title = "Reduced Coping Strategy Index (rCSI) by State | April 2023",
     subtitle = "Average rCSI  per Household by State",
     x = "rCSI",
     y = "State",
