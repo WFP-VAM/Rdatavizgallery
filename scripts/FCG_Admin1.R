@@ -24,7 +24,7 @@ library(wfpthemes)
 
 # Load Sample Data ------------------------------------------------------------#
 
-data <- haven::read_sav("Documents/GitHub/Rdatavizgallery/data/sampledataenglish.sav")
+data <- haven::read_sav("data/sampledataenglish.sav")
 
 # Calculate FCS & FCG ---------------------------------------------------------# 
 # script copied and pasted from 
@@ -88,18 +88,19 @@ fcscat21_barplot <- fcscat21_admin1_table_long %>%
                fill = FCSCat21), 
            width = 0.7) +
   geom_text(aes(x = ADMIN1Name_lab,
-                y = paste0(as.character(perc), "%"),
+                y = perc,
                 color = FCSCat21,
-                label = perc),
+                label = paste0(perc, "%")),
             position = position_stack(vjust = 0.5),
             show.legend = FALSE,
             size = 10/.pt,
   ) +
   scale_color_manual(values = c(main_white, main_black, main_white)) +
-  labs(title = "Household Food Consumption Score Classification by State | April 2023",
+  labs(tag = "Figure 1",
+       title = "Household Food Consumption Score Classification by State | April 2023",
        subtitle = "Relative Proportion of Households per FCS Classification by State in Fake Country",
-       caption = "Source: Emergency Food Security Assessment, data collected April 2023",
-       tag = "Figure 1"
+       caption = "Source: Emergency Food Security Assessment, data collected April 2023"
+       
   ) +
   scale_fill_wfp_b(palette = "pal_stoplight_3pt") +
   theme_wfp(grid = "Y",
