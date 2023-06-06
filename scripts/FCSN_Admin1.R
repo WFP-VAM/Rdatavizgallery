@@ -1,7 +1,7 @@
 #------------------------------------------------------------------------------#
 
 #	                        WFP RAM Standardized Scripts
-#                      Calculating and Visualising FCSN
+#                      Calculating and Visualizing FCSN
 
 #------------------------------------------------------------------------------#
 
@@ -217,8 +217,7 @@ ggplot(data_percFGHIron,
   theme_wfp(grid = "XY",
             axis = F,
             axis_title = F
-            ) +
-  theme(axis.text.x = element_text(size = 9, angle = 45, hjust = 1)
-        )
+            )
+# + coord_flip() to make hbar
 
 # End of Scripts --------------------------------------------------------------#
