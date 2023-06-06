@@ -100,32 +100,32 @@ val_lab(data$Max_coping_behaviour_FS) = num_lab("
 #creating a temporary variable to display value labels 
 #and providing the option to use weights if needed
 
-Max_coping_behaviourFS_table_wide <- data %>% 
-  drop_na(Max_coping_behaviourFS) %>%
-  count(Max_coping_behaviourFS_lab = as.character(Max_coping_behaviour_FS)) %>% # if weights are needed use instead the row below 
-  #count(Max_coping_behaviourFS_lab = as.character(Max_coping_behaviour_FS), wt = nameofweightvariable)
-  mutate(Percentage = 100 * n / sum(n)) %>%
-  ungroup() %>% select(-n) %>%
-  pivot_wider(names_from = Max_coping_behaviourFS_lab,
-              values_from = Percentage,
-              values_fill =  0) 
+lcsfs_admin1_table_long <- data %>% 
+  group_by(ADMIN1Name_lab = to_factor(ADMIN1Name)) %>%
+  count(Max_coping_behaviour_FS_lab = as.factor(Max_coping_behaviour_FS)) %>%
+  mutate(perc = 100 * n / sum(n)) %>%
+  ungroup() %>% select(-n) %>% mutate_if(is.numeric, round, 1) 
+
 
 #make plot
-lcsfs_barplot <- rcsi_admin1_table_long %>% 
-  ggplot() +geom_col(aes(x = ADMIN1Name, y = perc,fill = FCSCat21), width = 0.7) +geom_text(aes(x = ADMIN1Name,
+lcsfs_barplot <- lcsfs_admin1_table_long %>% 
+  ggplot() +geom_col(aes(x = ADMIN1Name_lab, y = perc,fill = Max_coping_behaviour_FS_lab), width = 0.7) +geom_text(aes(x = ADMIN1Name_lab,
                                                                                                 y = perc,
-                                                                                                color = FCSCat21,
-                                                                                                label = perc),
+                                                                                                color = Max_coping_behaviour_FS_lab,
+                                                                                                label = paste0(perc,"%")),
                                                                                             position = position_stack(vjust = 0.5),
                                                                                             show.legend = FALSE,
                                                                                             size = 10/.pt,
-  )+ scale_color_manual(values = c(main_white, main_black, main_white)) +
+  ) + scale_color_manual(values = c(main_black, main_black, main_white, main_white)) +
   labs(
-    title = "Household Food Consumption Score Classification by State | April 2023",
-    subtitle = "Relative Proportion of Households per FCS Classification by State in Fake Country",
+    tag = "Figure 3",
+    title = "Households using Livelihood Coping Stragies by State | April 2023",
+    subtitle = "Relative Proportion of Households using livelihood strategies by State in Fake Country",
     caption = "Source: Emergency Food Security Assessment, data collected April 2023"
-  )  +  scale_fill_wfp_b(palette = "pal_stoplight_3pt") + theme_wfp(grid = "XY",
-                                                                    axis = FALSE,
-                                                                    axis_title = FALSE)
+  )  +
+  scale_fill_wfp_b(palette = "pal_lcs") +
+  theme_wfp(grid = "Y",
+            axis = FALSE,
+            axis_title = FALSE)
 
-
+lcsfs_barplot
