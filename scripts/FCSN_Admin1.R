@@ -114,16 +114,15 @@ fcsn_table
 data <- data %>%
   mutate(across(c(FGVitACat, FGProteinCat, FGHIronCat), as.character))
 
+## Create the bar graph FGVitACat ---------------------------------------------# 
 # Calculate the percentage of each level within each region (ADMIN1Name)
-data_percentage <- data %>%
-  group_by(ADMIN1Name, FGVitACat) %>%
+data_percFGVitA <- data %>%
+  group_by(ADMIN1Name, FGVitACat) %>% 
   summarize(count = n()) %>%
   group_by(ADMIN1Name) %>%
   mutate(percentage = round(count/sum(count) * 100, 1))
 
-## Create the bar graph -------------------------------------------------------# 
-
-ggplot(data_percentage,
+ggplot(data_percFGVitA,
        aes(x = ADMIN1Name,
            y = percentage,
            fill = FGVitACat)) +
@@ -139,6 +138,64 @@ ggplot(data_percentage,
                "Consumed at least 7 times" = "#92D050")) +
   labs(title = "Household Food Consumption Score Nutritional Analysis",
        subtitle = "Vitamin A-Rich Foods by State (total n = 3,000)",
+       caption = "Source: Emergency Food Security Assessment, data collected May 2023") +
+  theme_wfp(grid = "XY",
+            axis = F,
+            axis_title = F) +
+  theme(axis.text.x = element_text(size = 9, angle = 45, hjust = 1))
+
+## Create the bar graph FGProteinCat ------------------------------------------#
+data_percFGPro <- data %>%
+  group_by(ADMIN1Name, FGProteinCat) %>% 
+  summarize(count = n()) %>%
+  group_by(ADMIN1Name) %>%
+  mutate(percentage = round(count/sum(count) * 100, 1))
+
+ggplot(data_percFGPro,
+       aes(x = ADMIN1Name,
+           y = percentage,
+           fill = FGProteinCat)) +
+  geom_bar(width = 0.6, 
+           stat = "identity") +
+  geom_text(aes(label = paste0(percentage, "%")),
+            position = position_stack(vjust = 0.5),
+            color = "white",
+            size = 3) +
+  scale_fill_manual(
+    values = c("Never consumed" = "#C00000",
+               "Consumed sometimes" = "#E46C0A",
+               "Consumed at least 7 times" = "#92D050")) +
+  labs(title = "Household Food Consumption Score Nutritional Analysis",
+       subtitle = "Protiein-Rich Foods by State (total n = 3,000)",
+       caption = "Source: Emergency Food Security Assessment, data collected May 2023") +
+  theme_wfp(grid = "XY",
+            axis = F,
+            axis_title = F) +
+  theme(axis.text.x = element_text(size = 9, angle = 45, hjust = 1))
+
+## Create the bar graph  ------------------------------------------#
+data_percFGHIron <- data %>%
+  group_by(ADMIN1Name, FGHIronCat) %>% 
+  summarize(count = n()) %>%
+  group_by(ADMIN1Name) %>%
+  mutate(percentage = round(count/sum(count) * 100, 1))
+
+ggplot(data_percFGHIron,
+       aes(x = ADMIN1Name,
+           y = percentage,
+           fill = FGHIronCat)) +
+  geom_bar(width = 0.6, 
+           stat = "identity") +
+  geom_text(aes(label = paste0(percentage, "%")),
+            position = position_stack(vjust = 0.5),
+            color = "white",
+            size = 3) +
+  scale_fill_manual(
+    values = c("Never consumed" = "#C00000",
+               "Consumed sometimes" = "#E46C0A",
+               "Consumed at least 7 times" = "#92D050")) +
+  labs(title = "Household Food Consumption Score Nutritional Analysis",
+       subtitle = "Heme Iron-Rich Foods by State (total n = 3,000)",
        caption = "Source: Emergency Food Security Assessment, data collected May 2023") +
   theme_wfp(grid = "XY",
             axis = F,
