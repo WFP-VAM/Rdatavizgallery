@@ -124,8 +124,9 @@ lcsfs_barplot <- lcsfs_admin1_table_long %>%
     caption = "Source: Emergency Food Security Assessment, data collected April 2023"
   )  +
   scale_fill_wfp_b(palette = "pal_lcs") +
-  theme_wfp(grid = "Y",
+  theme_wfp(grid = FALSE,
             axis = FALSE,
-            axis_title = FALSE)
+            axis_title = FALSE,
+            axis_text = "x")
 
 lcsfs_barplot
