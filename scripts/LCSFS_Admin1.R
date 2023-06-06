@@ -5,9 +5,12 @@
 
 #------------------------------------------------------------------------------#
 
-## Last updated:  May 24 2023
+## Last updated:  June 6 2023
+
+rm(list = ls())
 
 ## Load Packages --------------------------------------------------------------#
+
 library(tidyverse)
 library(dplyr)
 library(labelled)
@@ -23,7 +26,7 @@ library(wfpthemes)
 
 # Load Sample Data ------------------------------------------------------------#
 
-data <- haven::read_sav("data/sampledataenglish.sav")
+data <- haven::read_sav("Rdatavizgallery/data/sampledataenglish.sav")
 
 # Assign variable and value labels --------------------------------------------#
 
@@ -56,7 +59,7 @@ data <- data %>%
 
 ## Stress
 data <- data %>% mutate(Stress_coping_FS = case_when(
-  Lcs_stress_DomAsset == 20 |  Lcs_stress_DomAsset == 30 ~ 1,
+  Lcs_stress_DomAsset == 20 | Lcs_stress_DomAsset  == 30 ~ 1,
   Lcs_stress_Saving   == 20 | Lcs_stress_Saving    == 30 ~ 1,
   Lcs_stress_EatOut   == 20 | Lcs_stress_EatOut    == 30 ~ 1,
   Lcs_stress_CrdtFood == 20 | Lcs_stress_CrdtFood  == 30 ~ 1,
@@ -73,7 +76,7 @@ var_label(data$Crisis_coping_FS) <- "Household engaged in crisis coping strategi
 
 ## Emergency
 data <- data %>% mutate(Emergency_coping_FS = case_when(
-  Lcs_em_ResAsset   == 20 |  Lcs_em_ResAsset  == 30 ~ 1,
+  Lcs_em_ResAsset   == 20 | Lcs_em_ResAsset   == 30 ~ 1,
   Lcs_em_Begged     == 20 | Lcs_em_Begged     == 30 ~ 1,
   Lcs_em_IllegalAct == 20 | Lcs_em_IllegalAct == 30 ~ 1,
   TRUE ~ 0))
@@ -89,52 +92,60 @@ data <- data %>% mutate(Max_coping_behaviour_FS = case_when(
 
 var_label(data$Max_coping_behaviour_FS) <- "Summary of asset depletion"
 
-val_lab(data$Max_coping_behaviour_FS) = num_lab("
-             1 Household not adopting coping strategies
-             2 Stress coping strategies
-             3 Crisis coping strategies
-             4 Emergencies coping strategies
-")
+data$Max_coping_behaviour_FS <- factor(
+  data$Max_coping_behaviour_FS,
+  labels = c(
+    "Not adopting coping strategies",
+    "Stress coping strategies",
+    "Crisis coping strategies",
+    "Emergencies coping strategies")
+)
+
+data$ADMIN1Name <- haven::as_factor(data$ADMIN1Name)
+
+# Calculate the percentage of each level within each region (ADMIN1Name)
+data_percLCSFS <- data %>%
+  group_by(ADMIN1Name, Max_coping_behaviour_FS) %>% 
+  summarize(count = n()) %>%
+  group_by(ADMIN1Name) %>%
+  mutate(percentage = round(count/sum(count) * 100, 1))
+
+ggplot(data_percLCSFS,
+       aes(x = ADMIN1Name,
+           y = percentage,
+           fill = Max_coping_behaviour_FS)
+) +
+  geom_bar(width = 0.6, 
+           stat = "identity"
+  ) +
+  geom_text(aes(label = paste0(percentage, "%")),
+            position = position_stack(vjust = 0.5),
+            size = 3
+  ) +
+  scale_fill_wfp_b(palette = "pal_stoplight_4pt") + 
+  labs(title = "Household Livelihood Coping Strategies - Food Security | May 2023",
+       subtitle = "Disaggregation by State (Total n = 3,000)",
+       caption = "Source: Emergency Food Security Assessment, data collected May 2023"
+  ) +
+  theme_wfp(grid = "XY",
+            axis = F,
+            axis_title = F
+  ) +
+  theme(axis.text.x = element_text(size = 9, angle = 45, hjust = 1)
+  ) 
+
+# + coord_flip() to make hbar
 
 #creates a table of the weighted percentage of Max_coping_behaviour_FS by
 #creating a temporary variable to display value labels 
 #and providing the option to use weights if needed
 
-Max_coping_behaviourFS_table_wide <- data %>% 
-  drop_na(Max_coping_behaviourFS) %>%
-  count(Max_coping_behaviourFS_lab = as.character(Max_coping_behaviour_FS)) %>% # if weights are needed use instead the row below 
-  #count(Max_coping_behaviourFS_lab = as.character(Max_coping_behaviour_FS), wt = nameofweightvariable)
-  mutate(Percentage = 100 * n / sum(n)) %>%
-  ungroup() %>% select(-n) %>%
-  pivot_wider(names_from = Max_coping_behaviourFS_lab,
-              values_from = Percentage,
-              values_fill =  0) 
-
-#make plot
-lcsfs_barplot <- Max_coping_behaviourFS_table_wide %>% 
-  ggplot() +
-  geom_col(
-    aes(x = ADMIN1Name, 
-        y = perc,
-        fill = FCSCat21), 
-    width = 0.7) +
-  geom_text(
-    aes(x = ADMIN1Name,
-        y = perc,
-        color = FCSCat21,
-        label = perc),
-    position = position_stack(vjust = 0.5), 
-    show.legend = FALSE, 
-    size = 10/.pt)+ 
-  scale_color_manual(values = c(main_white, main_black, main_white)) +
-  labs(
-    title = "Household Food Consumption Score Classification by State | April 2023",
-    subtitle = "Relative Proportion of Households per FCS Classification by State in Fake Country",
-    caption = "Source: Emergency Food Security Assessment, data collected April 2023"
-  ) +
-  scale_fill_wfp_b(palette = "pal_stoplight_3pt") + 
-  theme_wfp(grid = "XY",
-            axis = FALSE,
-            axis_title = FALSE)
-
-
+# Max_coping_behaviourFS_table_wide <- data %>% 
+#  drop_na(Max_coping_behaviour_FS) %>%
+#  count(Max_coping_behaviour_FS_lab = as.character(Max_coping_behaviour_FS)) %>% # if weights are needed use instead the row below 
+#  count(Max_coping_behaviourFS_lab = as.character(Max_coping_behaviour_FS), wt = nameofweightvariable)
+#  mutate(Percentage = 100 * n / sum(n)) %>%
+#  ungroup() %>% select(-n) %>%
+#  pivot_wider(names_from = Max_coping_behaviour_FS_lab,
+#              values_from = Percentage,
+#              values_fill =  0) 
