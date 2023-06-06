@@ -1,11 +1,14 @@
 #------------------------------------------------------------------------------#
 
 #	                        WFP RAM Standardized Scripts
-#                      Calculating and Visualising FCS
+#                      Calculating and Visualizing FCS
 
 #------------------------------------------------------------------------------#
 
-## Last updated:  May 25 2023
+## Last updated:  June 6 2023
+## Contact for comments:  Nicole Wu (nicole.wu@wfp.org)
+
+rm(list = ls())
 
 ## Load Packages --------------------------------------------------------------#
 
@@ -24,7 +27,7 @@ library(wfpthemes)
 
 # Load Sample Data ------------------------------------------------------------#
 
-data <- haven::read_sav("data/sampledataenglish.sav")
+data <- haven::read_sav("Rdatavizgallery/data/sampledataenglish.sav")
 
 # Calculate FCS & FCG ---------------------------------------------------------# 
 # script copied and pasted from 
@@ -64,9 +67,6 @@ val_lab(data$FCSCat28) = num_lab("
 ")
 var_label(data$FCSCat28) <- "FCS Categories: 28/42 thresholds"
 
-#make table of FCG by admin1 - where should this script go - in with indicator calculation or with the viz?
-
-## adjust data format ---------------------------------------------------------#
 fcscat21_admin1_table_long <- data %>% 
   group_by(ADMIN1Name_lab = to_factor(ADMIN1Name)) %>%
   count(FCSCat21 = as.factor(FCSCat21)) %>%
@@ -74,16 +74,14 @@ fcscat21_admin1_table_long <- data %>%
   ungroup() %>% select(-n) %>% mutate_if(is.numeric, round, 1) 
 
 ## Create the bar graph -------------------------------------------------------# 
-class(fcscat21_admin1_table_long$ADMIN1Name_lab)
-class(fcscat21_admin1_table_long$perc)
-class(fcscat21_admin1_table_long$FCSCat21)
 
 fcscat21_barplot <- fcscat21_admin1_table_long %>% 
   ggplot() +
-  geom_col(aes(x = fct_reorder2(ADMIN1Name_lab, 
-                                as.numeric(perc),  # Convert perc to numeric
-                                FCSCat21, 
-                                \(x,y) sum(x*(y=="Acceptable"))), 
+  geom_col(
+    aes(x = fct_reorder2(ADMIN1Name_lab,
+                         as.numeric(perc),  # Convert perc to numeric
+                         FCSCat21,
+                         \(x,y) sum(x*(y=="Acceptable"))), 
                y = perc,
                fill = FCSCat21), 
            width = 0.7) +
@@ -93,18 +91,22 @@ fcscat21_barplot <- fcscat21_admin1_table_long %>%
                 label = paste0(perc, "%")),
             position = position_stack(vjust = 0.5),
             show.legend = FALSE,
-            size = 10/.pt,
-  ) +
-  scale_color_manual(values = c(main_white, main_black, main_white)) +
-  labs(tag = "Figure 1",
-       title = "Household Food Consumption Score Classification by State | April 2023",
+            size = 10/.pt) +
+  scale_color_manual(
+    values = c(main_white, main_black, main_white)
+    ) +
+  labs(title = "Household Food Consumption Score Classification by State | April 2023",
        subtitle = "Relative Proportion of Households per FCS Classification by State in Fake Country",
        caption = "Source: Emergency Food Security Assessment, data collected April 2023"
-       
   ) +
-  scale_fill_wfp_b(palette = "pal_stoplight_3pt") +
+  scale_fill_manual(
+    values = c("Poor" = "#FF0000",
+               "Borderline" = "#FFFF00",
+               "Acceptable" = "#92D050")) +
   theme_wfp(grid = "Y",
-            axis = FALSE,
-            axis_title = FALSE)
+            axis = F,
+            axis_title = F) +
+  theme(axis.text.x = element_text(size = 9, angle = 45, hjust = 1)
+  ) 
 
 fcscat21_barplot
