@@ -126,24 +126,30 @@ data_percFGVitA <- data %>%
 ggplot(data_percFGVitA,
        aes(x = ADMIN1Name,
            y = percentage,
-           fill = FGVitACat)) +
+           fill = FGVitACat)
+       ) +
   geom_bar(width = 0.6, 
-           stat = "identity") +
+           stat = "identity"
+           ) +
   geom_text(aes(label = paste0(percentage, "%")),
             position = position_stack(vjust = 0.5),
             color = "white",
-            size = 3) +
+            size = 3
+            ) +
   scale_fill_manual(
     values = c("Never consumed" = "#C00000",
                "Consumed sometimes" = "#E46C0A",
                "Consumed at least 7 times" = "#92D050")) +
   labs(title = "Household Food Consumption Score Nutritional Analysis",
-       subtitle = "Vitamin A-Rich Foods by State (total n = 3,000)",
-       caption = "Source: Emergency Food Security Assessment, data collected May 2023") +
+       subtitle = "Vitamin A-Rich Foods by State (Total n = 3,000)",
+       caption = "Source: Emergency Food Security Assessment, data collected May 2023"
+       ) +
   theme_wfp(grid = "XY",
             axis = F,
-            axis_title = F) +
-  theme(axis.text.x = element_text(size = 9, angle = 45, hjust = 1))
+            axis_title = F
+            ) +
+  theme(axis.text.x = element_text(size = 9, angle = 45, hjust = 1)
+        )
 
 ## Create the bar graph FGProteinCat ------------------------------------------#
 data_percFGPro <- data %>%
@@ -155,26 +161,32 @@ data_percFGPro <- data %>%
 ggplot(data_percFGPro,
        aes(x = ADMIN1Name,
            y = percentage,
-           fill = FGProteinCat)) +
+           fill = FGProteinCat)
+       ) +
   geom_bar(width = 0.6, 
-           stat = "identity") +
+           stat = "identity"
+           ) +
   geom_text(aes(label = paste0(percentage, "%")),
             position = position_stack(vjust = 0.5),
             color = "white",
-            size = 3) +
+            size = 3
+            ) +
   scale_fill_manual(
     values = c("Never consumed" = "#C00000",
                "Consumed sometimes" = "#E46C0A",
                "Consumed at least 7 times" = "#92D050")) +
   labs(title = "Household Food Consumption Score Nutritional Analysis",
-       subtitle = "Protiein-Rich Foods by State (total n = 3,000)",
-       caption = "Source: Emergency Food Security Assessment, data collected May 2023") +
+       subtitle = "Protiein-Rich Foods by State (Total n = 3,000)",
+       caption = "Source: Emergency Food Security Assessment, data collected May 2023"
+       ) +
   theme_wfp(grid = "XY",
             axis = F,
-            axis_title = F) +
-  theme(axis.text.x = element_text(size = 9, angle = 45, hjust = 1))
+            axis_title = F
+            ) +
+  theme(axis.text.x = element_text(size = 9, angle = 45, hjust = 1)
+        )
 
-## Create the bar graph  ------------------------------------------#
+## Create the bar graph FGHIronCat --------------------------------------------#
 data_percFGHIron <- data %>%
   group_by(ADMIN1Name, FGHIronCat) %>% 
   summarize(count = n()) %>%
@@ -184,21 +196,29 @@ data_percFGHIron <- data %>%
 ggplot(data_percFGHIron,
        aes(x = ADMIN1Name,
            y = percentage,
-           fill = FGHIronCat)) +
+           fill = FGHIronCat)
+       ) +
   geom_bar(width = 0.6, 
-           stat = "identity") +
+           stat = "identity"
+           ) +
   geom_text(aes(label = paste0(percentage, "%")),
             position = position_stack(vjust = 0.5),
             color = "white",
-            size = 3) +
+            size = 3
+            ) +
   scale_fill_manual(
     values = c("Never consumed" = "#C00000",
                "Consumed sometimes" = "#E46C0A",
                "Consumed at least 7 times" = "#92D050")) +
   labs(title = "Household Food Consumption Score Nutritional Analysis",
-       subtitle = "Heme Iron-Rich Foods by State (total n = 3,000)",
-       caption = "Source: Emergency Food Security Assessment, data collected May 2023") +
+       subtitle = "Heme Iron-Rich Foods by State (Total n = 3,000)",
+       caption = "Source: Emergency Food Security Assessment, data collected May 2023"
+       ) +
   theme_wfp(grid = "XY",
             axis = F,
-            axis_title = F) +
-  theme(axis.text.x = element_text(size = 9, angle = 45, hjust = 1))
+            axis_title = F
+            ) +
+  theme(axis.text.x = element_text(size = 9, angle = 45, hjust = 1)
+        )
+
+# End of Scripts --------------------------------------------------------------#
