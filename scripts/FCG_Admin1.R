@@ -5,10 +5,7 @@
 
 #------------------------------------------------------------------------------#
 
-## Last updated:  June 6 2023
-## Contact for comments:  Nicole Wu (nicole.wu@wfp.org)
 
-rm(list = ls())
 
 ## Load Packages --------------------------------------------------------------#
 
@@ -27,7 +24,7 @@ library(wfpthemes)
 
 # Load Sample Data ------------------------------------------------------------#
 
-data <- haven::read_sav("Rdatavizgallery/data/sampledataenglish.sav")
+data <- haven::read_sav("data/sampledataenglish.sav")
 
 # Calculate FCS & FCG ---------------------------------------------------------# 
 # script copied and pasted from 
@@ -69,25 +66,32 @@ var_label(data$FCSCat28) <- "FCS Categories: 28/42 thresholds"
 
 fcscat21_admin1_table_long <- data %>% 
   group_by(ADMIN1Name_lab = to_factor(ADMIN1Name)) %>%
-  count(FCSCat21 = as.factor(FCSCat21)) %>%
+  count(FCSCat21_lab = as.character(FCSCat21)) %>%
   mutate(perc = 100 * n / sum(n)) %>%
   ungroup() %>% select(-n) %>% mutate_if(is.numeric, round, 1) 
 
 ## Create the bar graph -------------------------------------------------------# 
+#create a palette of fcs based on wfpthemes palette and set ordering of values
+#this will make sure proper color gets assigned to proper value no mater how table of values was created
+pal_fcs <- wfp_pal("pal_stoplight_3pt", n = 3)
+order_fcs <- c("Acceptable", "Borderline", "Poor")
+pal_fcs <- setNames(pal_fcs, order_fcs)
 
+#and now the graph - option1 - no y axis 
 fcscat21_barplot <- fcscat21_admin1_table_long %>% 
   ggplot() +
   geom_col(
     aes(x = fct_reorder2(ADMIN1Name_lab,
-                         as.numeric(perc),  # Convert perc to numeric
-                         FCSCat21,
+                         perc,  
+                         FCSCat21_lab,
                          \(x,y) sum(x*(y=="Acceptable"))), 
                y = perc,
-               fill = FCSCat21), 
+               #fill = FCSCat21_lab),
+               fill = factor(FCSCat21_lab,level=order_fcs)), 
            width = 0.7) +
   geom_text(aes(x = ADMIN1Name_lab,
                 y = perc,
-                color = FCSCat21,
+                color = factor(FCSCat21_lab,level=order_fcs),
                 label = paste0(perc, "%")),
             position = position_stack(vjust = 0.5),
             show.legend = FALSE,
@@ -95,18 +99,40 @@ fcscat21_barplot <- fcscat21_admin1_table_long %>%
   scale_color_manual(
     values = c(main_white, main_black, main_white)
     ) +
-  labs(title = "Household Food Consumption Score Classification by State | April 2023",
-       subtitle = "Relative Proportion of Households per FCS Classification by State in Fake Country",
+  labs(tag = "Figure 1",
+       title = "Household Food Consumption Score (FCS) Groups by State | April 2023",
+       subtitle = "Percentage of Households per FCS Group by State in Example Country",
        caption = "Source: Emergency Food Security Assessment, data collected April 2023"
-  ) +
-  scale_fill_manual(
-    values = c("Poor" = "#FF0000",
-               "Borderline" = "#FFFF00",
-               "Acceptable" = "#92D050")) +
-  theme_wfp(grid = "Y",
-            axis = F,
-            axis_title = F) +
-  theme(axis.text.x = element_text(size = 9, angle = 45, hjust = 1)
-  ) 
+  ) +  scale_fill_manual(values = pal_fcs) + theme_wfp(grid = FALSE, axis_text = "x", axis = F, axis_title = F) 
 
 fcscat21_barplot
+
+#and now the graph - option2 - no data labels but present in y axis 
+fcscat21_barplot2 <- fcscat21_admin1_table_long %>% 
+  ggplot() +
+  geom_col(
+    aes(x = fct_reorder2(ADMIN1Name_lab,
+                         perc,  
+                         FCSCat21_lab,
+                         \(x,y) sum(x*(y=="Acceptable"))), 
+        y = perc,
+        #fill = FCSCat21_lab),
+        fill = factor(FCSCat21_lab,level=order_fcs)), 
+    width = 0.7) +
+  geom_text(aes(x = ADMIN1Name_lab,
+                y = perc,
+                color = factor(FCSCat21_lab,level=order_fcs),
+                label = perc),
+            position = position_stack(vjust = 0.5),
+            show.legend = FALSE,
+            size = 10/.pt) +
+  scale_color_manual(
+    values = c(main_white, main_black, main_white)
+  ) +
+  labs(tag = "Figure 1",
+       title = "Household Food Consumption Score (FCS) Groups by State | April 2023",
+       subtitle = "Percentage of Households per FCS Group by State in Example Country",
+       caption = "Source: Emergency Food Security Assessment, data collected April 2023"
+  ) +  scale_fill_manual(values = pal_fcs) + theme_wfp(grid = "Y",  axis_text = "xy", axis = F, axis_title = F) 
+
+fcscat21_barplot2

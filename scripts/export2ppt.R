@@ -3,7 +3,7 @@
 #Export as editable ppt                
 #copied from https://www.pipinghotdata.com/posts/2020-09-22-exporting-editable-ggplot-graphics-to-powerpoint-with-officer-and-purrr/
 #create list of all the plots
-listofplots <- list(fcscat21_barplot_remixed)
+listofplots <- list(fcscat21_barplot, fcscat21_barplot2)
 
 #create_dml, converts the ggplot objects to dml objects.
 create_dml <- function(plot){
