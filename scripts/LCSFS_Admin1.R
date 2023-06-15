@@ -5,9 +5,6 @@
 
 #------------------------------------------------------------------------------#
 
-## Last updated:  June 6 2023
-## Contact for comments:  Nicole Wu (nicole.wu@wfp.org)
-
 rm(list = ls())
 
 ## Load Packages --------------------------------------------------------------#
@@ -105,48 +102,41 @@ data$Max_coping_behaviour_FS <- factor(
 data$ADMIN1Name <- haven::as_factor(data$ADMIN1Name)
 
 # Calculate the percentage of each level within each region (ADMIN1Name)
-data_percLCSFS <- data %>%
-  group_by(ADMIN1Name, Max_coping_behaviour_FS) %>% 
-  summarize(count = n()) %>%
-  group_by(ADMIN1Name) %>%
-  mutate(percentage = round(count/sum(count) * 100, 1))
+lcs_admin1_table_long <- data %>% 
+  group_by(ADMIN1Name_lab = to_factor(ADMIN1Name)) %>%
+  count(Max_coping_behaviour_FS_lab = as.character(Max_coping_behaviour_FS)) %>%
+  mutate(perc = 100 * n / sum(n)) %>%
+  ungroup() %>% select(-n) %>% mutate_if(is.numeric, round, 1) 
 
-lcs <- ggplot(data_percLCSFS,
-       aes(x = ADMIN1Name,
-           y = percentage,
-           fill = Max_coping_behaviour_FS)
-) +
-  geom_bar(width = 0.6, 
-           stat = "identity"
-  ) +
-  geom_text(aes(label = paste0(percentage, "%")),
+#this will make sure proper color gets assigned to proper value no mater how table of values was created
+order_lcs <- c("Not adopting coping strategies","Stress coping strategies","Crisis coping strategies","Emergencies coping strategies")
+pal_lcs <- setNames(pal_lcs, order_lcs)
+
+#and now the graph - option1 - no y axis 
+lcs_barplot <- lcs_admin1_table_long %>% 
+  ggplot() +
+  geom_col(
+    aes(x = fct_reorder2(ADMIN1Name_lab,
+                         perc,  
+                         Max_coping_behaviour_FS_lab,
+                         \(x,y) sum(x*(y=="Not adopting coping strategies"))), 
+        y = perc,
+        fill = factor(Max_coping_behaviour_FS_lab,level=order_lcs)), 
+    width = 0.7) +
+  geom_text(aes(x = ADMIN1Name_lab,
+                y = perc,
+                color = factor(Max_coping_behaviour_FS_lab,level=order_lcs),
+                label = paste0(perc, "%")),
             position = position_stack(vjust = 0.5),
-            size = 3
+            show.legend = FALSE,
+            size = 10/.pt) +
+  scale_color_manual(
+    values = c(main_black, main_black, main_white, main_white)
   ) +
-  scale_fill_wfp_b(palette = "pal_lcs") + 
-  labs(title = "Household Livelihood Coping Strategies - Food Security | May 2023",
-       subtitle = "Disaggregation by State (Total n = 3,000)",
-       caption = "Source: Emergency Food Security Assessment, data collected May 2023"
-  ) +
-  theme_wfp(grid = "XY",
-            axis = F,
-            axis_title = F
-  ) +
-  theme(axis.text.x = element_text(size = 9, angle = 45, hjust = 1)
-  ) 
+  labs(tag = "Figure 6",
+       title = "Household Livelihood Coping Strategies (LCS) by State | April 2023",
+       subtitle = "Percentage of Households per LCS groups per State in Example Country",
+       caption = "Source: Emergency Food Security Assessment, data collected April 2023"
+  ) +  scale_fill_manual(values = pal_lcs) + theme_wfp(grid = FALSE, axis_text = "x", axis = F, axis_title = F) 
 
-# + coord_flip() to make hbar
-
-#creates a table of the weighted percentage of Max_coping_behaviour_FS by
-#creating a temporary variable to display value labels 
-#and providing the option to use weights if needed
-
-# Max_coping_behaviourFS_table_wide <- data %>% 
-#  drop_na(Max_coping_behaviour_FS) %>%
-#  count(Max_coping_behaviour_FS_lab = as.character(Max_coping_behaviour_FS)) %>% # if weights are needed use instead the row below 
-#  count(Max_coping_behaviourFS_lab = as.character(Max_coping_behaviour_FS), wt = nameofweightvariable)
-#  mutate(Percentage = 100 * n / sum(n)) %>%
-#  ungroup() %>% select(-n) %>%
-#  pivot_wider(names_from = Max_coping_behaviour_FS_lab,
-#              values_from = Percentage,
-#              values_fill =  0) 
+lcs_barplot

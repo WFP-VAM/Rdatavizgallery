@@ -87,7 +87,6 @@ fcscat21_barplot <- fcscat21_admin1_table_long %>%
                          FCSCat21_lab,
                          \(x,y) sum(x*(y=="Acceptable"))), 
                y = perc,
-               #fill = FCSCat21_lab),
                fill = factor(FCSCat21_lab,level=order_fcs)), 
            width = 0.7) +
   geom_text(aes(x = ADMIN1Name_lab,
