@@ -64,6 +64,7 @@ val_lab(data$FCSCat28) = num_lab("
 ")
 var_label(data$FCSCat28) <- "FCS Categories: 28/42 thresholds"
 
+#creates long table 
 fcscat21_admin1_table_long <- data %>% 
   group_by(ADMIN1Name_lab = to_factor(ADMIN1Name)) %>%
   count(FCSCat21_lab = as.character(FCSCat21)) %>%
@@ -101,38 +102,8 @@ fcscat21_barplot <- fcscat21_admin1_table_long %>%
     ) +
   labs(tag = "Figure 1",
        title = "Household Food Consumption Score (FCS) Groups by State | April 2023",
-       subtitle = "Percentage of Households per FCS Group by State in Example Country",
+       subtitle = "Percentage of Households per FCS Group per State in Example Country",
        caption = "Source: Emergency Food Security Assessment, data collected April 2023"
   ) +  scale_fill_manual(values = pal_fcs) + theme_wfp(grid = FALSE, axis_text = "x", axis = F, axis_title = F) 
 
 fcscat21_barplot
-
-#and now the graph - option2 - no data labels but present in y axis 
-fcscat21_barplot2 <- fcscat21_admin1_table_long %>% 
-  ggplot() +
-  geom_col(
-    aes(x = fct_reorder2(ADMIN1Name_lab,
-                         perc,  
-                         FCSCat21_lab,
-                         \(x,y) sum(x*(y=="Acceptable"))), 
-        y = perc,
-        #fill = FCSCat21_lab),
-        fill = factor(FCSCat21_lab,level=order_fcs)), 
-    width = 0.7) +
-  geom_text(aes(x = ADMIN1Name_lab,
-                y = perc,
-                color = factor(FCSCat21_lab,level=order_fcs),
-                label = perc),
-            position = position_stack(vjust = 0.5),
-            show.legend = FALSE,
-            size = 10/.pt) +
-  scale_color_manual(
-    values = c(main_white, main_black, main_white)
-  ) +
-  labs(tag = "Figure 1",
-       title = "Household Food Consumption Score (FCS) Groups by State | April 2023",
-       subtitle = "Percentage of Households per FCS Group by State in Example Country",
-       caption = "Source: Emergency Food Security Assessment, data collected April 2023"
-  ) +  scale_fill_manual(values = pal_fcs) + theme_wfp(grid = "Y",  axis_text = "xy", axis = F, axis_title = F) 
-
-fcscat21_barplot2
