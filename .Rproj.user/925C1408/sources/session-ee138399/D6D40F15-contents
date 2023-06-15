@@ -1,0 +1,7 @@
+install.packages("googlesheets4")
+
+library(googlesheets4)
+
+gs4_auth()
+
+sheet <- read_sheet("https://docs.google.com/spreadsheets/d/1ihduQMcioUTARbV41ZwqtREWN8aqWXw417v1rsV-KdY/edit?hl&hl#gid=625752476")

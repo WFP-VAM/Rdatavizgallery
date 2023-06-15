@@ -27,7 +27,7 @@ library(wfpthemes)
 
 # Load Sample Data ------------------------------------------------------------#
 
-data <- haven::read_sav("Rdatavizgallery/data/sampledataenglish.sav")
+data <- haven::read_sav("data/sampledataenglish.sav")
 
 # Assign variable and value labels --------------------------------------------#
 
@@ -111,7 +111,7 @@ data_percLCSFS <- data %>%
   group_by(ADMIN1Name) %>%
   mutate(percentage = round(count/sum(count) * 100, 1))
 
-ggplot(data_percLCSFS,
+lcs <- ggplot(data_percLCSFS,
        aes(x = ADMIN1Name,
            y = percentage,
            fill = Max_coping_behaviour_FS)
@@ -123,7 +123,7 @@ ggplot(data_percLCSFS,
             position = position_stack(vjust = 0.5),
             size = 3
   ) +
-  scale_fill_wfp_b(palette = "pal_stoplight_4pt") + 
+  scale_fill_wfp_b(palette = "pal_lcs") + 
   labs(title = "Household Livelihood Coping Strategies - Food Security | May 2023",
        subtitle = "Disaggregation by State (Total n = 3,000)",
        caption = "Source: Emergency Food Security Assessment, data collected May 2023"
