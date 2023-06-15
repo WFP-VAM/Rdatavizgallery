@@ -5,8 +5,6 @@
 
 #------------------------------------------------------------------------------#
 
-## Last updated:  June 06 2023
-## Contact for comments:  Nicole Wu (nicole.wu@wfp.org)
 
 rm(list = ls())
 
@@ -19,6 +17,7 @@ library(expss)
 library(haven)
 library(officer)
 library(gtsummary)
+library(scales)
 
 # WFP themes package will be updated frequently - reinstall it everytime for now
 library(devtools)
@@ -26,7 +25,7 @@ install_github("WFP-VAM/wfpthemes")
 library(wfpthemes)
 
 # Load Sample Data ------------------------------------------------------------#
-data <- haven::read_sav("Rdatavizgallery/data/sampledataenglish.sav")
+data <- haven::read_sav("data/sampledataenglish.sav")
 
 # Calculate rCSI --------------------------------------------------------------# 
 #Script copied and pasted from 
@@ -77,38 +76,31 @@ rcsi_admin1_table_long <- data %>%
   summarise(meanrCSI = round(mean(rCSI),1))
 
 # Create bar graph of rCSI ----------------------------------------------------# 
-rcsi_admin_barplot <- rcsi_admin1_table_long %>% 
-  ggplot() +
+
+rcsi_barplot <- rcsi_admin1_table_long %>% ggplot() +
   geom_col(aes(
     x = meanrCSI,
-    y = reorder(ADMIN1Name_lab, meanrCSI)
-    ),
-    fill = wfp_pal(n = 1, "pal_blue"),
-    width = 0.8
-    ) +
+    y = reorder(ADMIN1Name_lab, meanrCSI),
+  ),
+  fill = wfp_pal(n = 1, "pal_blue"),
+  width = 0.8
+  ) +
   labs(
+    tag = "Figure 7",
     title = "Reduced Coping Strategy Index (rCSI) by State | April 2023",
-    subtitle = "Average rCSI per Household by State",
-    caption = "Source: Emergency Food Security Assessment, data collected May 2023",
+    subtitle = "Average rCSI  per Household by State",
     x = "rCSI",
-    y = "State"
-  ) + 
-  geom_vline(xintercept = 4, 
-             color = "#e74a53", 
-             linetype = "dashed") + ## cut-off point?
-  geom_text(aes(x = meanrCSI,
-                y = ADMIN1Name_lab,
-                label = meanrCSI),
-            hjust = -0.5,
-            size = 8 /.pt
-            ) +
+    y = "State",
+    caption = "Source: Emergency Food Security Assessment, data collected April 2023"
+  ) + geom_text(aes(x = meanrCSI,
+                    y = ADMIN1Name_lab, label = meanrCSI),
+                hjust = -0.5,
+                size = 8 / .pt
+  ) +
   scale_x_continuous(
     expand = expansion(c(0, 0.1)),
     breaks = pretty_breaks(n = 7),
     labels = label_number()
-  ) + 
-  theme_wfp(grid = "XY",
-            axis = F,
-            axis_title = F)
+  ) + theme_wfp(grid = FALSE, axis = "y", axis_title = FALSE, axis_text = "y") 
 
-rcsi_admin_barplot 
+rcsi_barplot
